@@ -4,6 +4,10 @@ A language model fine tuned to emit raw Linux x86_64 ELF binaries _directly_ as 
 
 Should you use this instead of a compiler? Sure, it works. It's also useless.
 
+> **This fork** adds an I Ching oracle program family: CRAP's first target
+> with a loop and randomness, plus a behavioral eval for random programs and
+> a LoRA training script. See [`oracle-train/README.md`](oracle-train/README.md).
+
 ```
 "Generate a Linux x86_64 binary that prints 'hello world'."
 

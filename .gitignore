@@ -6,3 +6,7 @@ journal
 __pycache__/
 .pytest_cache/
 .ruff_cache/
+
+# Oracle fork: generated datasets and training runs
+/data/
+/runs/

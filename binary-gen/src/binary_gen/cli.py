@@ -29,6 +29,7 @@ from binary_gen.core import (
     parse_hex,
     sign_binary,
 )
+from binary_gen.core.linux_oracle import METHODS, linux_oracle
 from binary_gen.core.runner import Exited, Signaled, run_binary
 
 MAX_MESSAGE_LENGTH = 64
@@ -110,6 +111,48 @@ def gen_cmd(
         _run_binary(binary_data, platform)
 
     typer.secho(f"\nSuccess! Wrote executable binary to {output}", fg="green", bold=True)
+
+
+@app.command(name="oracle")
+def oracle_cmd(
+    lines: Annotated[
+        int, typer.Option(help="3 casts a trigram (exits 1-8), 6 a hexagram (exits 1-64).")
+    ] = 6,
+    method: Annotated[
+        str, typer.Option(help=f"Line probabilities: {', '.join(METHODS)}.")
+    ] = "coins",
+    output: Annotated[
+        Path,
+        typer.Option("--output", "-o", help="Output binary path.", **OUTPUT_FILE),
+    ] = DEFAULT_BIN_PATH,
+    run: Annotated[
+        bool,
+        typer.Option(help=f"Cast once after building. {_RUN_DESCRIPTION}"),
+    ] = False,
+    dump_hex: DUMP_HEX_OPT = True,
+) -> None:
+    """Generate a Linux x86_64 I Ching oracle that casts a random figure.
+
+    It prints the figure top line first (`x` and `o` mark changing lines)
+    and exits with its King Wen (hexagram) or Earlier Heaven (trigram) number.
+    """
+    if method not in METHODS:
+        raise typer.BadParameter(f"Method must be one of: {', '.join(METHODS)}.")
+    try:
+        binary_data = linux_oracle(lines, METHODS[method])
+    except ValueError as e:
+        raise typer.BadParameter(str(e)) from e
+
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_bytes(binary_data)
+
+    _finalize_binary(output, get_builder(Platform.LINUX_X86))
+    _dump_file_info(output, dump_hex=dump_hex)
+
+    if run:
+        _run_binary(binary_data, Platform.LINUX_X86)
+
+    typer.secho(f"\nSuccess! Wrote oracle binary to {output}", fg="green", bold=True)
 
 
 @app.command(name="run")
